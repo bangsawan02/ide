@@ -1,0 +1,6 @@
+{
+  "name": "ZygiskFrida IDE",
+  "description": "Local Frida script IDE. Uses a Debian chroot to run frida-tools and injects scripts into ZygiskFrida.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
