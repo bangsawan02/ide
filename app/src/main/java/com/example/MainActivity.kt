@@ -14,6 +14,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -228,9 +229,15 @@ fun TargetTab(
     LaunchedEffect(Unit) {
         withContext(Dispatchers.IO) {
             val pm = context.packageManager
-            val installed = pm.getInstalledPackages(0)
-            val list = installed.map {
-                AppInfo(it.applicationInfo?.loadLabel(pm)?.toString() ?: it.packageName, it.packageName)
+            val res = Shell.cmd("ps -A -o NAME").exec()
+            val runningNames = res.out.filter { it.contains(".") && !it.contains(":") }.distinct()
+            val list = runningNames.map { pkg ->
+                var appName = pkg
+                try {
+                    val info = pm.getApplicationInfo(pkg, 0)
+                    appName = info.loadLabel(pm).toString()
+                } catch (e: Exception) {}
+                AppInfo(appName, pkg)
             }.sortedBy { it.name.lowercase() }
             withContext(Dispatchers.Main) { apps = list }
         }
@@ -258,7 +265,7 @@ fun TargetTab(
                 label = { Text("Target Package Name") },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .menuAnchor(),
+                    .menuAnchor(MenuAnchorType.PrimaryEditable),
                 shape = RoundedCornerShape(12.dp),
                 trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) }
             )
@@ -369,7 +376,7 @@ fun ScriptTab(
                 readOnly = true,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .menuAnchor(),
+                    .menuAnchor(MenuAnchorType.PrimaryNotEditable),
                 trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
                 shape = RoundedCornerShape(12.dp)
             )
@@ -528,7 +535,7 @@ fun ConsoleTab(
                     },
                     enabled = isRunning && replInput.isNotBlank()
                 ) {
-                    Icon(Icons.Default.Send, contentDescription = "Send")
+                    Icon(Icons.AutoMirrored.Filled.Send, contentDescription = "Send")
                 }
             },
             keyboardOptions = KeyboardOptions(imeAction = ImeAction.Send),
